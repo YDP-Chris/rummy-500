@@ -18,6 +18,36 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
 
   useEffect(() => {
     loadGame();
+
+    // Realtime subscription: refetch when hands or game row change
+    const channel = supabase
+      .channel(`game:${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "rummy_hands",
+          filter: `game_id=eq.${id}`,
+        },
+        () => loadGame()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "rummy_games",
+          filter: `id=eq.${id}`,
+        },
+        () => loadGame()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function loadGame() {
