@@ -79,15 +79,9 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
     const newP1Total = newHands.reduce((sum, h) => sum + h.player1_score, 0);
     const newP2Total = newHands.reduce((sum, h) => sum + h.player2_score, 0);
 
-    if (newP1Total >= 500 || newP2Total >= 500) {
+    if ((newP1Total >= 500 || newP2Total >= 500) && newP1Total !== newP2Total) {
       const winner =
-        newP1Total >= 500 && newP2Total >= 500
-          ? newP1Total >= newP2Total
-            ? game!.player1_name
-            : game!.player2_name
-          : newP1Total >= 500
-          ? game!.player1_name
-          : game!.player2_name;
+        newP1Total > newP2Total ? game!.player1_name : game!.player2_name;
 
       await supabase
         .from("rummy_games")
