@@ -12,6 +12,7 @@ export type Game = {
   winner: string | null
   started_at: string
   completed_at: string | null
+  first_dealer: 'player1' | 'player2' | null
 }
 
 export type Hand = {

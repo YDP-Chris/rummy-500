@@ -76,6 +76,19 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   const p1Total = hands.reduce((sum, h) => sum + h.player1_score, 0);
   const p2Total = hands.reduce((sum, h) => sum + h.player2_score, 0);
 
+  // Derive current dealer from hand count: alternates each hand
+  let currentDealerName: string | null = null;
+  if (game.first_dealer) {
+    const dealerSlot =
+      hands.length % 2 === 0
+        ? game.first_dealer
+        : game.first_dealer === "player1"
+        ? "player2"
+        : "player1";
+    currentDealerName =
+      dealerSlot === "player1" ? game.player1_name : game.player2_name;
+  }
+
   async function addHand(e: React.FormEvent) {
     e.preventDefault();
     if (!auth) return;
@@ -193,6 +206,14 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
           >
             Back to Home
           </button>
+        </div>
+      )}
+
+      {/* Current dealer */}
+      {!game.winner && currentDealerName && (
+        <div className="text-center text-sm">
+          <span className="text-foreground/60">Dealer: </span>
+          <span className="font-semibold">{currentDealerName}</span>
         </div>
       )}
 

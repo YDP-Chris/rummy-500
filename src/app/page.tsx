@@ -15,6 +15,7 @@ export default function Home() {
   const { auth } = useAuth();
   const [player1, setPlayer1] = useState("");
   const [player2, setPlayer2] = useState("");
+  const [firstDealer, setFirstDealer] = useState<"player1" | "player2">("player1");
   const [games, setGames] = useState<GameWithTotals[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -63,7 +64,11 @@ export default function Home() {
 
     const { data, error } = await supabase
       .from("rummy_games")
-      .insert({ player1_name: player1.trim(), player2_name: player2.trim() })
+      .insert({
+        player1_name: player1.trim(),
+        player2_name: player2.trim(),
+        first_dealer: firstDealer,
+      })
       .select()
       .single();
 
@@ -119,6 +124,37 @@ export default function Home() {
             className="w-full border border-border rounded-lg px-4 py-3 text-base bg-card disabled:opacity-50"
             required
           />
+          <div>
+            <label className="text-xs font-medium text-foreground/60 block mb-2">
+              Who deals first?
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setFirstDealer("player1")}
+                disabled={!auth}
+                className={`rounded-lg px-4 py-2 text-sm font-medium border disabled:opacity-50 ${
+                  firstDealer === "player1"
+                    ? "bg-accent text-white border-accent"
+                    : "bg-card border-border"
+                }`}
+              >
+                {player1.trim() || "Player 1"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFirstDealer("player2")}
+                disabled={!auth}
+                className={`rounded-lg px-4 py-2 text-sm font-medium border disabled:opacity-50 ${
+                  firstDealer === "player2"
+                    ? "bg-accent text-white border-accent"
+                    : "bg-card border-border"
+                }`}
+              >
+                {player2.trim() || "Player 2"}
+              </button>
+            </div>
+          </div>
           <button
             type="submit"
             disabled={creating || !auth}
