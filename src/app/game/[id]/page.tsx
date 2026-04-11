@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useRef, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { supabase, Game, Hand } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { WinnerOverlay } from "@/components/WinnerOverlay";
 
 export default function GamePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -15,6 +16,9 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   const [p2Score, setP2Score] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showWinnerOverlay, setShowWinnerOverlay] = useState(false);
+  const initializedRef = useRef<boolean>(false);
+  const prevWinnerRef = useRef<string | null>(null);
 
   useEffect(() => {
     loadGame();
@@ -64,6 +68,21 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
     if (handsRes.data) setHands(handsRes.data);
     setLoading(false);
   }
+
+  // Detect winner transition from any path (local addHand, remote realtime).
+  // Skip the first observation so revisiting a finished game doesn't replay.
+  useEffect(() => {
+    if (!game) return;
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      prevWinnerRef.current = game.winner;
+      return;
+    }
+    if (game.winner && !prevWinnerRef.current) {
+      setShowWinnerOverlay(true);
+    }
+    prevWinnerRef.current = game.winner;
+  }, [game]);
 
   if (loading) {
     return <p className="text-center text-foreground/50 mt-8">Loading...</p>;
@@ -168,7 +187,14 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   });
 
   return (
-    <div className="space-y-6">
+    <>
+      {showWinnerOverlay && game.winner && (
+        <WinnerOverlay
+          winnerName={game.winner}
+          onDismiss={() => setShowWinnerOverlay(false)}
+        />
+      )}
+      <div className="space-y-6">
       {/* Scoreboard */}
       <div className="grid grid-cols-2 gap-4">
         <div
@@ -304,6 +330,7 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
           </table>
         </section>
       )}
-    </div>
+      </div>
+    </>
   );
 }
