@@ -25,7 +25,7 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
 
     // Realtime subscription: refetch when hands or game row change
     const channel = supabase
-      .channel(`game:${id}`)
+      .channel(`game-${id}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         {
@@ -39,7 +39,7 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "rummy_games",
           filter: `id=eq.${id}`,
@@ -48,8 +48,22 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
       )
       .subscribe();
 
+    // Polling fallback in case realtime fails silently (cold phones,
+    // backgrounded tabs, flaky mobile network). 4s feels live enough
+    // without hammering the API.
+    const pollInterval = setInterval(() => loadGame(), 4000);
+
+    // Also refetch when the tab becomes visible again (iOS safari
+    // suspends timers and websockets when backgrounded).
+    function onVisible() {
+      if (document.visibilityState === "visible") loadGame();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+      document.removeEventListener("visibilitychange", onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
