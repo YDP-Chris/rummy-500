@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ role: "chris", displayName: "Chris" });
   }
   if (caitlynPw && password === caitlynPw) {
-    return NextResponse.json({ role: "caitlyn", displayName: "Caitlyn" });
+    return NextResponse.json({ role: "caitlyn", displayName: "Nikki" });
   }
 
   return NextResponse.json({ error: "Invalid password" }, { status: 401 });
