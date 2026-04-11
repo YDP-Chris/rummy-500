@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase, Game, Hand } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 type GameWithTotals = Game & {
   player1_total: number;
@@ -11,6 +12,7 @@ type GameWithTotals = Game & {
 
 export default function Home() {
   const router = useRouter();
+  const { auth } = useAuth();
   const [player1, setPlayer1] = useState("");
   const [player2, setPlayer2] = useState("");
   const [games, setGames] = useState<GameWithTotals[]>([]);
@@ -55,6 +57,7 @@ export default function Home() {
 
   async function startGame(e: React.FormEvent) {
     e.preventDefault();
+    if (!auth) return;
     if (!player1.trim() || !player2.trim()) return;
     setCreating(true);
 
@@ -92,13 +95,19 @@ export default function Home() {
       {/* New Game Form */}
       <section>
         <h2 className="text-lg font-semibold mb-3">New Game</h2>
+        {!auth && (
+          <p className="text-sm text-foreground/60 mb-3">
+            Log in to start a new game.
+          </p>
+        )}
         <form onSubmit={startGame} className="space-y-3">
           <input
             type="text"
             placeholder="Player 1 name"
             value={player1}
             onChange={(e) => setPlayer1(e.target.value)}
-            className="w-full border border-border rounded-lg px-4 py-3 text-base bg-card"
+            disabled={!auth}
+            className="w-full border border-border rounded-lg px-4 py-3 text-base bg-card disabled:opacity-50"
             required
           />
           <input
@@ -106,12 +115,13 @@ export default function Home() {
             placeholder="Player 2 name"
             value={player2}
             onChange={(e) => setPlayer2(e.target.value)}
-            className="w-full border border-border rounded-lg px-4 py-3 text-base bg-card"
+            disabled={!auth}
+            className="w-full border border-border rounded-lg px-4 py-3 text-base bg-card disabled:opacity-50"
             required
           />
           <button
             type="submit"
-            disabled={creating}
+            disabled={creating || !auth}
             className="w-full bg-accent text-white font-semibold rounded-lg px-4 py-3 text-base disabled:opacity-50"
           >
             {creating ? "Starting..." : "Start Game"}

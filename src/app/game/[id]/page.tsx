@@ -3,10 +3,12 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { supabase, Game, Hand } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 export default function GamePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const { auth } = useAuth();
   const [game, setGame] = useState<Game | null>(null);
   const [hands, setHands] = useState<Hand[]>([]);
   const [p1Score, setP1Score] = useState("");
@@ -46,6 +48,7 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
 
   async function addHand(e: React.FormEvent) {
     e.preventDefault();
+    if (!auth) return;
     const s1 = parseInt(p1Score) || 0;
     const s2 = parseInt(p2Score) || 0;
     if (s1 === 0 && s2 === 0) return;
@@ -93,6 +96,7 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   }
 
   async function undoLastHand() {
+    if (!auth) return;
     if (hands.length === 0) return;
     const lastHand = hands[hands.length - 1];
 
@@ -163,7 +167,7 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
       )}
 
       {/* Add Hand Form */}
-      {!game.winner && (
+      {!game.winner && auth && (
         <form onSubmit={addHand} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -208,12 +212,14 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
         <section>
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-sm font-semibold text-foreground/60">Hand History</h2>
-            <button
-              onClick={undoLastHand}
-              className="text-xs text-accent font-medium"
-            >
-              Undo Last
-            </button>
+            {auth && (
+              <button
+                onClick={undoLastHand}
+                className="text-xs text-accent font-medium"
+              >
+                Undo Last
+              </button>
+            )}
           </div>
           <table className="w-full text-sm">
             <thead>
