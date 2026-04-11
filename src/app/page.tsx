@@ -97,7 +97,8 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
-      {/* New Game Form */}
+      {/* New Game Form — logged-in only */}
+      {auth && (
       <section>
         <h2 className="text-lg font-semibold mb-3">New Game</h2>
         {!auth && (
@@ -164,6 +165,7 @@ export default function Home() {
           </button>
         </form>
       </section>
+      )}
 
       {/* Win/Loss Records */}
       {Object.keys(records).length > 0 && (
@@ -187,8 +189,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* Active Games */}
-      {activeGames.length > 0 && (
+      {/* Active Games — logged-in only */}
+      {auth && activeGames.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold mb-3">In Progress</h2>
           <div className="space-y-2">
@@ -215,10 +217,10 @@ export default function Home() {
         </section>
       )}
 
-      {/* Completed Games */}
-      {loading ? (
+      {/* Completed Games — logged-in only */}
+      {auth && loading ? (
         <p className="text-center text-foreground/50">Loading...</p>
-      ) : completedGames.length > 0 ? (
+      ) : auth && completedGames.length > 0 ? (
         <section>
           <h2 className="text-lg font-semibold mb-3">Game History</h2>
           <div className="space-y-2">
