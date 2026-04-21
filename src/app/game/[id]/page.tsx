@@ -14,6 +14,8 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   const [hands, setHands] = useState<Hand[]>([]);
   const [p1Score, setP1Score] = useState("");
   const [p2Score, setP2Score] = useState("");
+  const [p1Negative, setP1Negative] = useState(false);
+  const [p2Negative, setP2Negative] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showWinnerOverlay, setShowWinnerOverlay] = useState(false);
@@ -125,8 +127,10 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   async function addHand(e: React.FormEvent) {
     e.preventDefault();
     if (!auth) return;
-    const s1 = parseInt(p1Score) || 0;
-    const s2 = parseInt(p2Score) || 0;
+    const raw1 = parseInt(p1Score) || 0;
+    const raw2 = parseInt(p2Score) || 0;
+    const s1 = p1Negative ? -Math.abs(raw1) : Math.abs(raw1);
+    const s2 = p2Negative ? -Math.abs(raw2) : Math.abs(raw2);
     if (s1 === 0 && s2 === 0) return;
     setSubmitting(true);
 
@@ -152,6 +156,8 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
     setHands(newHands);
     setP1Score("");
     setP2Score("");
+    setP1Negative(false);
+    setP2Negative(false);
     setSubmitting(false);
 
     // Check for winner
@@ -265,27 +271,55 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
               <label className="text-xs font-medium text-foreground/60 block mb-1">
                 {game.player1_name}
               </label>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={p1Score}
-                onChange={(e) => setP1Score(e.target.value)}
-                placeholder="0"
-                className="w-full border border-border rounded-lg px-4 py-3 text-xl text-center bg-card"
-              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setP1Negative(!p1Negative)}
+                  className={`shrink-0 w-12 border rounded-lg text-lg font-bold ${
+                    p1Negative
+                      ? "bg-red-500/20 border-red-500 text-red-500"
+                      : "bg-card border-border text-foreground/40"
+                  }`}
+                >
+                  {p1Negative ? "-" : "+"}
+                </button>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={p1Score}
+                  onChange={(e) => setP1Score(e.target.value.replace(/-/g, ""))}
+                  placeholder="0"
+                  className="w-full border border-border rounded-lg px-4 py-3 text-xl text-center bg-card"
+                />
+              </div>
             </div>
             <div>
               <label className="text-xs font-medium text-foreground/60 block mb-1">
                 {game.player2_name}
               </label>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={p2Score}
-                onChange={(e) => setP2Score(e.target.value)}
-                placeholder="0"
-                className="w-full border border-border rounded-lg px-4 py-3 text-xl text-center bg-card"
-              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setP2Negative(!p2Negative)}
+                  className={`shrink-0 w-12 border rounded-lg text-lg font-bold ${
+                    p2Negative
+                      ? "bg-red-500/20 border-red-500 text-red-500"
+                      : "bg-card border-border text-foreground/40"
+                  }`}
+                >
+                  {p2Negative ? "-" : "+"}
+                </button>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={p2Score}
+                  onChange={(e) => setP2Score(e.target.value.replace(/-/g, ""))}
+                  placeholder="0"
+                  className="w-full border border-border rounded-lg px-4 py-3 text-xl text-center bg-card"
+                />
+              </div>
             </div>
           </div>
           <button
